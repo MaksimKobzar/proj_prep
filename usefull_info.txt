@@ -1,0 +1,15 @@
+/-------------------------------------------------------
+Extensions names:
+/-------------------------------------------------------
+I - integer instructions
+M - integer multiplication and division instructions
+A - atomic memory instructions
+F - single-precision floating-point instructions
+D - double-precision floating-point instructions
+G - summ of I, M, A, F and D
+Q - quad-precision floating-point instructions
+C - 16-bit compressed instructions
+/-------------------------------------------------------
+
+
+
