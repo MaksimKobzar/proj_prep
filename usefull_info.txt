@@ -12,4 +12,25 @@ C - 16-bit compressed instructions
 /-------------------------------------------------------
 
 
+Statements:
+1. All the 32-bit instructions are aligned by 32.
+2. All the 32-bit instructions have their lowest two bits set to 11.
+3. All zeros and all ones are illegal kinds of instructions.
+4. ISA has little-endian memory system.
+5.
+a) Exception - unusual condition occurring at run time associated with an instruction in the current RISC-V thread.
+b) Trap - the synchronous transfer of control to a trap handler caused by an exceptional condition occurring within a RISC-V thread.
+c) Interrupt - external event that occurs asynchronously to the current RISC-V thread.
+6. There are 32 general-pupose registers x0-x31 and PC.
+7. Four core instructions formats: R / I / S / U.
+8. An instruction address misaligned exception is generated on a taken branch or unconditional jump if the target address is not four-byte aligned.
+No instruction fetch misaligned exception is generated for a conditional branch that is not taken.
+9. The sign bit for all immediates is always in bit 31 of the instruction to speed sign-extension circuitry.
+10. Two immediate instructions formats: B (coupled with S) / J (coupled with U).
+11. Integer compuration instructions: I or R. No integer computational instructions cause arithmetic exceptions.
+12. No support for overflow checks on integer arithmetic operations.
 
+
+Integer Computational Instructions
+ADDI
+SLTI
