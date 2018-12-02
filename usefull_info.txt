@@ -32,5 +32,4 @@ No instruction fetch misaligned exception is generated for a conditional branch 
 
 
 Integer Computational Instructions
-ADDI
-SLTI
+page 104 -  RV32I Base
