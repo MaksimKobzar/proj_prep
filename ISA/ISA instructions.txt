@@ -1,26 +1,166 @@
 ISA instructions:
 !! 2 LSB is 1.
 
+
+#########################################################
+# LUI
+#########################################################
+  a) Format
+      imm      rd      opcode
+    [ 31:12 ][ 11:7 ][ 6:2 ]
+  b) Opcodes
+    LUI (LOAD UPPER IMMEDIATE) OPCODE=5'hD
+  c) Description
+    RD <= {IMM,12'b0}
+  d) Base operations
+    IF| read INSTR from IMEM[PC], PC <= PC + 4
+    ID| {IMM,RD,OPCODE} = INSTR
+    EX| DATA <= {IMM,12'b0}
+    MA| .
+    WB| RD <= DATA
+#########################################################
+
+#########################################################
+# AUPIC
+#########################################################
+  a) Format
+      imm      rd      opcode
+    [ 31:12 ][ 11:7 ][ 6:2 ]
+  b) Opcodes
+    AUIPIC (ADD UPPER IMMEDIATE TO PC)      FUNCT3=3'h0 OPCODE=5'h4
+  c) Description
+    RD <= PC + {IMM,12'b0}
+  d) Base operations
+    IF| read INSTR from IMEM[PC], PC <= PC + 4
+    ID| {IMM,RD,OPCODE} = INSTR
+    EX| DATA <= PC + {IMM,12'b0}
+    MA| .
+    WB| RD <= DATA
+#########################################################
+
+
+#########################################################
 # LOAD
+#########################################################
+  a) Format
+      imm      rs1      funct3   rd      opcode
+    [ 31:20 ][ 19:15 ][ 14:12 ][ 11:7 ][ 6:2 ]
+  b) Opcodes
+    LB  (LOAD BYTE)               FUNCT3=3'h0 OPCODE=5'h0
+    LH  (LOAD HALFWORD)           FUNCT3=3'h1 OPCODE=5'h0
+    LW  (LOAD WORD)               FUNCT3=3'h2 OPCODE=5'h0
+    LBU (LOAD BYTE UNSIGNED)      FUNCT3=3'h4 OPCODE=5'h0
+    LHU (LOAD HALFWORD UNSIGNED)  FUNCT3=3'h5 OPCODE=5'h0
+  c) Description
+    RD <= DMEM[RS1+IMM];
+  d) Base operations
+    IF| read INSTR from IMEM[PC], PC <= PC + 4
+    ID| {IMM,RS1,FUNCT3,RD,OPCODE} = INSTR, read RS1
+    EX| ADDR = RS1 + IMM
+    MA| read RDATA from DMEM[ADDR]
+    WB|
+      if(FUNCT3==3'h0) RDATA = {25{RDATA[7]},RDATA[6:0]}   s-ext
+      if(FUNCT3==3'h1) RDATA = {17{RDATA[15]},RDATA[14:0]} s-ext
+      if(FUNCT3==3'h4) RDATA = {24{1'b0},RDATA[7:0]}       0-ext
+      if(FUNCT3==3'h5) RDATA = {16{1'b0},RDATA[15:0]}      0-ext
+      write RDATA in RD
+#########################################################
+
+#########################################################
+# STORE
+#########################################################
+  a) Format
+      immhi    rs2      rs1    funct3   immlo   opcode
+    [ 31:25 ][ 24:20 ][ 19:15 ][ 14:12 ][ 11:7 ][ 6:2 ]
+  b) Opcodes
+    SB (STORE BYTE)         FUNCT3=3'h0 OPCODE=5'h8
+    SH (STORE HALFWORD)       FUNCT3=3'h1 OPCODE=5'h8
+    SW (STORE WORD)         FUNCT3=3'h2 OPCODE=5'h8
+  c) Description
+    DMEM[RS1+IMM] <= RS2
+  d) Base operations
+    IF| read INSTR from IMEM[PC], PC <= PC + 4
+    ID| {IMM,RS2,RS1,FUNCT3,OPCODE} = INSTR, read RS1, read RS2
+    EX| ADDR = RS1 + IMM
+    MA|
+      if(FUNCT3==3'h0) WDATA = RS2[7:0]
+      if(FUNCT3==3'h1) WDATA = RS2[15:0]
+      if(FUNCT3==3'h2) WDATA = RS2
+      write WDATA in DMEM[ADDR]
+    WB| .
+#########################################################
+
+# COMPUTATION REG-IMM
+  imm      rs1      funct3   rd      opcode
+[ 31:20 ][ 19:15 ][ 14:12 ][ 11:7 ][ 6:2 ]
+b) Opcodes
+ADDI (ADD IMMEDIATE)            FUNCT3=3'h0 OPCODE=5'h4
+SLTI (SET LESS THAN IMMEDIATE)        FUNCT3=3'h2 OPCODE=5'h4
+SLTIU (SET LESS THAN IMMEDIATE UNSIDGNED) FUNCT3=3'h3 OPCODE=5'h4
+XORI (XOR IMMEDIATE)            FUNCT3=3'h4 OPCODE=5'h4
+ORI (OR IMMEDIATE)              FUNCT3=3'h6 OPCODE=5'h4
+ANDI (AND IMMEDIATE)            FUNCT3=3'h7 OPCODE=5'h4
+c) Description
+RD <= RS1 +^|& IMM
+RD <= (RS1 < IMM)
+d) Base operations
+IF| read INSTR from IMEM[PC], PC <= PC + 4
+ID| {IMM,RS1,FUNCT3,RD,OPCODE} = INSTR, read RS1, sign-extended or zero-extended
+EX| RESULT = RS1 +^|& IMM
+MA| .
+WB| RD <= RESULT
+
+
+
+
+
+# UNCONDITIONAL JUMPS
+a) Format
+b) Opcodes
+JAL (JUMP AND LINK)
+JALR (JUMP AND LINK REG)
+c) Description
+
+d) Base operations
+IF|
+ID|
+EX|
+MA|
+WB|
+
+# CONDITIONAL JUMPS
 a) Format
   imm      rs1      funct3   rd      opcode
-[ 31:20 ][ 19:15 ][ 14:12 ][ 11:7 ][ 6:2 ] 
+[ 31:20 ][ 19:15 ][ 14:12 ][ 11:7 ][ 6:2 ]
 b) Opcodes
-LB	(LOAD BYTE)      			FUNCT3=3'h0 OPCODE=5'h0
-LH	(LOAD HALFWORD)      		FUNCT3=3'h1 OPCODE=5'h0
-LW	(LOAD WORD)      			FUNCT3=3'h2 OPCODE=5'h0
-LD	(LOAD DOUBLEWORD)      		FUNCT3=3'h3 OPCODE=5'h0
-LBU	(LOAD BYTE UNSIGNED)     	FUNCT3=3'h4 OPCODE=5'h0
-LHU	(LOAD HALFWORD UNSIGNED)   	FUNCT3=3'h5 OPCODE=5'h0
-LWU	(LOAD WORD UNSIGNED)     	FUNCT3=3'h6 OPCODE=5'h0
+BEQ (BRANCH IF EQUAL)
+BNE (BRANCH IF NOT EQUAL)
+BLT (BRANCH LESS THAN)
+BLTU (BRANCH LESS THAN UNSIGNED)
+BGE (BRANCH IF GREATER THAN OR EQUAL)
+BGEU (BRANCH IF GREATER THAN OR EQUAL USIGNED)
 c) Description
-rd <= DMEM[rs1+imm];
+
 d) Base operations
-IF| RD IMEM[PC], PC = PC + 4
-ID| GET {IMM,RS1,FUNCT3,RD,OPCODE}, READ RS1
-EX| ADDR = RS1 + IMM
-MA| READ DMEM[ADDR], 
-WB| WRITE TO RD RDATA
+IF|
+ID|
+EX|
+MA|
+WB|
+
+#
+a) Format
+
+b) Opcodes
+
+c) Description
+
+d) Base operations
+IF|
+ID|
+EX|
+MA|
+WB|
 
 
 
@@ -36,7 +176,7 @@ bgeu    bimm12hi rs1 rs2 bimm12lo 14..12=7 6..2=0x18 1..0=3
 jalr    rd rs1 imm12              14..12=0 6..2=0x19 1..0=3
 
 jal     rd jimm20                          6..2=0x1b 1..0=3
-jal 	
+jal
 
 lui     rd imm20 6..2=0x0D 1..0=3
 auipc   rd imm20 6..2=0x05 1..0=3
@@ -76,14 +216,14 @@ sraw    rd rs1 rs2 31..25=32 14..12=5 6..2=0x0E 1..0=3
 # LOAD
 format
   imm      rs1      funct3   rd      opcode
-[ 31:20 ][ 19:15 ][ 14:12 ][ 11:7 ][ 6:2 ] 
-LB	(LOAD BYTE)      		FUNCT3=3'h0 OPCODE=5'h0
-LH	(LOAD HALFWORD)      	FUNCT3=3'h1 OPCODE=5'h0
-LW	(LOAD WORD)      		FUNCT3=3'h2 OPCODE=5'h0
-LD	(LOAD DOUBLEWORD)      	FUNCT3=3'h3 OPCODE=5'h0
-LBU	(LOAD BYTE UNSIGNED)     	FUNCT3=3'h4 OPCODE=5'h0
-LHU	(LOAD HALFWORD UNSIGNED)   FUNCT3=3'h5 OPCODE=5'h0
-LWU	(LOAD WORD UNSIGNED)     	FUNCT3=3'h6 OPCODE=5'h0
+[ 31:20 ][ 19:15 ][ 14:12 ][ 11:7 ][ 6:2 ]
+LB  (LOAD BYTE)         FUNCT3=3'h0 OPCODE=5'h0
+LH  (LOAD HALFWORD)       FUNCT3=3'h1 OPCODE=5'h0
+LW  (LOAD WORD)         FUNCT3=3'h2 OPCODE=5'h0
+LD  (LOAD DOUBLEWORD)       FUNCT3=3'h3 OPCODE=5'h0
+LBU (LOAD BYTE UNSIGNED)      FUNCT3=3'h4 OPCODE=5'h0
+LHU (LOAD HALFWORD UNSIGNED)   FUNCT3=3'h5 OPCODE=5'h0
+LWU (LOAD WORD UNSIGNED)      FUNCT3=3'h6 OPCODE=5'h0
 
 
 lb      rd rs1       imm12 14..12=0 6..2=0x00 1..0=3
@@ -98,12 +238,12 @@ sb     imm12hi rs1 rs2 imm12lo 14..12=0 6..2=0x08 1..0=3
 sh     imm12hi rs1 rs2 imm12lo 14..12=1 6..2=0x08 1..0=3
 sw     imm12hi rs1 rs2 imm12lo 14..12=2 6..2=0x08 1..0=3
 SW (STORE WORD)
-	31:25 IMM_HI
-	24:20 RS2
-	19:15 RS1
-	14:12 FUNCT3  = {3'h2}
-	11:07 IMM_LO
-	06:00 OPCODE = {5'h8 , 2'h3}
+  31:25 IMM_HI
+  24:20 RS2
+  19:15 RS1
+  14:12 FUNCT3  = {3'h2}
+  11:07 IMM_LO
+  06:00 OPCODE = {5'h8 , 2'h3}
 
 sd     imm12hi rs1 rs2 imm12lo 14..12=3 6..2=0x08 1..0=3
 
